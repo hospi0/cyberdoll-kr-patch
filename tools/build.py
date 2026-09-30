@@ -413,7 +413,9 @@ def main():
                 errs.append('%s 적 이름에 공백 «%s» — A/B 표시가 공백 자리에 덮어써짐' % (r['id'], t)); continue
             if len(b) > n:
                 errs.append('%s %s %X: %d B > %d «%s»' % (r['id'], r['kind'], o, len(b), n, t)); continue
-            pad = b' ' if fspr[o + n - 1] == 0x20 or r['kind'] == '이름12' else b'\x00'
+            # ★아이템 이름은 NUL 로 끝나면 게임이 «바이트 수»로 오른쪽 맞춤한다(2026-10-01 실기 — 본 크래셔·마그네가더가
+            #   오른쪽으로 밀림, 2바이트 음절 탓에 끝도 안 맞음). 원문은 전부 10B 꽉 참(공백 채움) → 공백으로 채워 왼쪽 맞춤 유지
+            pad = b' ' if fspr[o + n - 1] == 0x20 or r['kind'] in ('이름12', '아이템10') else b'\x00'
             fspr[o:o + n] = b + pad * (n - len(b))
         n8 += 1
     # ---- 오류면 멈춤
