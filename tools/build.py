@@ -489,6 +489,11 @@ def main():
              '/EVENT/EV01.BIN': ev01, '/ETC/FNT.BIN': fnt}
     for p, d in files.items():
         open(os.path.join(out, p.strip('/').replace('/', '_')), 'wb').write(d)
+    # ⑤ 동영상 화면 자막(tools/moviesub.py 가 구운 work/kr/GM_DEMO.CPK, 원본 크기 그대로 — 느려서 빌드 때 다시 굽지 않음)
+    gm = os.path.join(ROOT, 'work', 'kr', 'GM_DEMO.CPK')
+    if os.path.exists(gm):
+        files['/CINEPACK/GM_DEMO.CPK'] = open(gm, 'rb').read()
+        print('동영상: CINEPACK/GM_DEMO.CPK (한글 자막)')
     if '--write' in sys.argv:
         import inplace, disc
         o2 = os.path.join(ROOT, 'work', 'out'); os.makedirs(o2, exist_ok=True)
