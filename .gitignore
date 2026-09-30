@@ -1,0 +1,15 @@
+# 허용 목록: 소스·문서·작은 보조 표만(ROM·빌드 결과·my files·dist 금지)
+*
+!.gitignore
+!README.md
+!tools/
+!tools/*.py
+!docs/
+!docs/*.md
+!work/
+!work/charmap.tsv
+!work/charfix.tsv
+!work/tr/
+!work/tr/*.tsv
+!work/build/
+!work/build/*.py
