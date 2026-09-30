@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 r"""사이버 돌 GM_DEMO(게임 소개 영상) 화면 자막 한글화 (2026-10-01)
-  영상 = CINEPACK/GM_DEMO.CPK: Sega FILM Cinepak 352×112(세로 반 해상도, 화면에서 두 배), 15fps, 모든 프레임 키, 띠 1개.
+  영상 = CINEPACK/GM_DEMO.CPK: Sega FILM Cinepak 352×112(화면에 1:1 — 원문 일본어 글자 10×10), 15fps, 모든 프레임 키, 띠 1개.
+  ⚠처음(10-01)엔 «세로 반 해상도»로 잘못 알고 2배 높이로 그려 반으로 줄임 → 실기에서 글자가 위아래로 눌림(사용자) → 제 크기로 그림.
   자막 = 그림 아래 97‥106줄에 일본어 흰 글자(음성 없음, 내레이션 글).
   ① 프레임 전부 → work/movie/gm/fr/(ffmpeg) · 자막 띠(95‥108줄) 흰 글자 모양이 바뀌는 곳으로 구간 → work/movie/gm/segs.json
   ② 자막 표 my files/tsv/movie_subs.tsv (영상 · 구간 번호들 · 원문 · 번역) — 연도(A.D.xxxx)·영어만 있는 줄은 원본 그대로(표에 없음)
   ③ 자막마다 [첫 구간 − PAD, 끝 구간 + PAD] 프레임(이웃 자막과 겹치지 않게)의 띠 94‥110줄을 검게 칠하고,
-     2배 높이(352×224)에 나눔고딕 Bold PX + 검은 1px 테두리로 한글을 그려 세로 반으로 줄여 얹음 → work/movie/gm/kr/
+     나눔고딕 Bold PX + 검은 1px 테두리로 한글을 제 크기로 그려 얹음 → work/movie/gm/kr/
   ④ 그 프레임만 cinepak 재굽기(tools/movenc.py, 프레임별 원래 바이트 이하 — 모자라면 앞에서 남긴 바이트) → work/kr/GM_DEMO.CPK(원본 크기)
   미리보기 work/movie/gm/GM_DEMO_kr.mp4
   python tools/moviesub.py
@@ -18,7 +19,7 @@ import movenc, rules
 
 FF = r'C:\claude\utils\ffmpeg-9.0.1-essentials_build\bin\ffmpeg.exe'
 FONT = r'C:\claude\utils\font\nanum-gothic\NanumGothicBold.ttf'
-PX = 14
+PX = 13
 W, H = 352, 112
 BAND = (94, 111)                    # 검게 칠할 줄(반 해상도)
 X0 = 12                             # 원문처럼 왼쪽 맞춤
@@ -41,21 +42,21 @@ def rows():
 
 
 def plate(text, F):
-    """352×112 RGBA 판: 띠는 검정, 한글은 2배 높이로 그려 세로 반으로"""
-    big = Image.new('RGBA', (W, H * 2), (0, 0, 0, 0)); d = ImageDraw.Draw(big)
+    """352×112 RGBA 판: 띠는 검정, 한글은 제 크기(화면 1:1)"""
+    big = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(big)
     w = d.textlength(text, font=F)
     assert X0 + w <= W - 4, ('줄 넘침 %dpx' % w, text)
     l, t, r, b = d.textbbox((0, 0), text, font=F)
-    y = (BAND[0] + BAND[1]) - (b + t) // 2           # 2배 높이 좌표에서 띠 가운데
+    y = (BAND[0] + BAND[1]) // 2 - (b + t) // 2      # 띠 가운데
+    assert y + t - 1 >= BAND[0] and y + b + 1 <= BAND[1], ('띠 밖', text)
     for dx in (-1, 0, 1):
         for dy in (-1, 0, 1):
             if dx or dy:
                 d.text((X0 + dx, y + dy), text, font=F, fill=(0, 0, 0, 255))
     d.text((X0, y), text, font=F, fill=(255, 255, 255, 255))
-    small = big.resize((W, H), Image.LANCZOS)
     base = Image.new('RGBA', (W, H), (0, 0, 0, 0))
     ImageDraw.Draw(base).rectangle((0, BAND[0], W - 1, BAND[1] - 1), fill=(0, 0, 0, 255))
-    return Image.alpha_composite(base, small)
+    return Image.alpha_composite(base, big)
 
 
 def main():
